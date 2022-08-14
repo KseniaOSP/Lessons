@@ -7,9 +7,74 @@ using System.Threading.Tasks;
 
 namespace ExceptionHandling
 {
+    interface INamed
+    {
+        string Name { get; }
+    }
+
+    interface IValue
+    {
+        int GetValue();
+    }
+
+    interface IOperation
+    {
+       IValue Execute(IValue a, IValue b);
+    }
+
+
+    public class Operand : IValue, INamed
+    {
+        readonly int value;
+        public Operand(int value) { this.value = value; }
+
+        public string Name => Convert.ToString(value);
+        
+        public int GetValue()
+        {
+          return value;
+        }
+    }
+
+    class Sum : IOperation, INamed
+    {
+        public string Name => "sum";
+
+        public IValue Execute(IValue a, IValue b)
+        {
+            return new Operand(a.GetValue()+b.GetValue());
+        }
+    }
+    class Sub : IOperation, INamed
+    {
+        public string Name => "sub";
+
+        public IValue Execute(IValue a, IValue b)
+        {
+            return new Operand(a.GetValue() - b.GetValue());
+        }
+    }
+
+    class Mult : IOperation, INamed
+    {
+        public string Name => "mult";
+
+        public IValue Execute(IValue a, IValue b)
+        {
+            return new Operand(a.GetValue() * b.GetValue());
+        }
+    }
+    class Div : IOperation, INamed
+    {
+        public string Name => "div";
+
+        public IValue Execute(IValue a, IValue b)
+        {
+            return new Operand(a.GetValue() / b.GetValue());
+        }
+    }
     public class Program
     {
-           
         static void Main(string[] args)
         {
             Logger logger = LogManager.GetCurrentClassLogger();
@@ -31,28 +96,33 @@ namespace ExceptionHandling
                 char operation = input[nondigitIndex];
                 int y = Convert.ToInt32(input.Substring(nondigitIndex + 1, input.Length - nondigitIndex - 1));
 
-                int result;
+                IValue xval = new Operand(x);
+                IValue yval = new Operand(y);
+
+                IOperation op;
+                switch (operation)
                 {
-                    switch (operation)
-                    {
-                        case '+':
-                            result = x + y;
-                            break;
-                        case '-':
-                            result = x - y;
-                            break;
-                        case '*':
-                            result = x * y;
-                            break;
-                        case '/':
-                            result = x / y;
-                            break;
-                        default:
-                            logger.Error("Unknown operation");
-                            return;
-                    }
-                    Console.WriteLine(result);
+                    case '+':
+                        op = new Sum();
+                        break;
+                    case '-':
+                        op = new Sub();
+                        break;
+                    case '*':
+                        op = new Mult();
+                        break;
+                    case '/':
+                        op = new Div();
+                        break;
+                    default:
+                        logger.Error("Unknown operation");
+                        return;
                 }
+
+                int result = op.Execute(xval, yval).GetValue();
+
+                Console.WriteLine(result);
+                
             }
             catch (DivideByZeroException)
             {
@@ -65,5 +135,6 @@ namespace ExceptionHandling
             Console.ReadLine();
            
         }
+
     }
 }
